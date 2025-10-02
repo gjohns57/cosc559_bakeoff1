@@ -204,7 +204,7 @@ void keyReleased()
           println("we're done!");
       }
   
-     int mode = 1;
+     int mode = 0;
      if (mode == 0) {
         HashSet<Integer> rows = new HashSet<>();
         HashSet<Integer> cols = new HashSet<>();
