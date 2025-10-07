@@ -79,8 +79,6 @@ void draw()
   for (int i = 0; i < 16; i++)// for all button
     drawButton(i); //draw button
 
-  fill(255, 0, 0, 200); // set fill color to translucent red
-  ellipse(mouseX, mouseY, 20, 20); //draw user cursor as a circle with a diameter of 20
 }
 
 void mousePressed() // test to see if hit was in target!
@@ -151,8 +149,18 @@ void drawButton(int i)
 
 void mouseMoved()
 {
-   //can do stuff everytime the mouse is moved (i.e., not clicked)
-   //https://processing.org/reference/mouseMoved_.html
+   for (int i = 0; i < 16; i++)// for all button
+    {
+        //Check if the cursor is over a button
+        Rectangle bounds = getButtonLocation(i);
+        if ((mouseX > bounds.x && mouseX < bounds.x + bounds.width) && (mouseY > bounds.y && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
+        {
+           cursor(HAND); //Change cursor to hand if over a button
+           return; //Exit the function early
+        }
+    }
+
+    cursor(ARROW);
 }
 
 void mouseDragged()

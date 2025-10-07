@@ -4,8 +4,12 @@ import java.awt.Robot;
 import java.util.ArrayList;
 import java.util.Collections;
 import processing.core.PApplet;
-import processing.core.PVector;
+import processing.sound.*;
 
+
+SoundFile hitSound;
+SoundFile missSound;
+SoundFile hoverSound;
 //when in doubt, consult the Processsing reference: https://processing.org/reference/
 
 int margin = 200; //set the margin around the squares
@@ -19,10 +23,15 @@ int hits = 0; //number of successful clicks
 int misses = 0; //number of missed clicks
 Robot robot; //initialized in setup 
 
+boolean hovering = false;
 int numRepeats = 1; //sets the number of times each button repeats in the test
 
 void setup()
 {
+
+    missSound = new SoundFile(this, "a-nasty-sound-if-you-choose-the-wrong-one-149895.mp3");
+  hitSound = new SoundFile(this, "ui-click-43196.mp3");
+  hoverSound = new SoundFile(this, "minimalist-button-hover-sound-effect-399749.mp3");
   size(700, 700); // set the size of the window
   //noCursor(); //hides the system cursor if you want
   noStroke(); //turn off all strokes, we're just using fills here (can change this if you want)
@@ -79,8 +88,6 @@ void draw()
   for (int i = 0; i < 16; i++)// for all button
     drawButton(i); //draw button
 
-  fill(255, 0, 0, 200); // set fill color to translucent red
-  ellipse(mouseX, mouseY, 20, 20); //draw user cursor as a circle with a diameter of 20
 }
 
 void mousePressed() // test to see if hit was in target!
@@ -104,11 +111,13 @@ void mousePressed() // test to see if hit was in target!
   if ((mouseX > bounds.x && mouseX < bounds.x + bounds.width) && (mouseY > bounds.y && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
   {
     System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
+    hitSound.play();
     hits++; 
   } 
   else
   {
     System.out.println("MISSED! " + trialNum + " " + (millis() - startTime)); // fail
+    missSound.play();  
     misses++;
   }
 
@@ -131,28 +140,61 @@ void drawButton(int i)
 {
   Rectangle bounds = getButtonLocation(i);
 
-  noStroke();
-  PVector fillColor;
-  if (trials.get(trialNum) == i) // see if current button is the target
-    fillColor = new PVector(0, 0.8, 1.8);
-  else
-    fillColor = new PVector(0.78, 0.78, 0.78);
-
-  // This changes the color of the button if the mouse is hovering over it
+  float box_size = bounds.width;
+  int strokeW = 0;
   if ((mouseX > bounds.x && mouseX < (bounds.x + buttonSize)) && (mouseY > bounds.y && mouseY < (bounds.y + buttonSize))) {
-    fillColor.mult(1.2);
-    stroke(255, 255, 255);
-    strokeWeight(4);
+    stroke(255);
+    strokeW = 2;
   }
-  fill(fillColor.x * 255, fillColor.y * 255, fillColor.z * 255);
+    else {
+        noStroke();
+    }
 
-  rect(bounds.x, bounds.y, bounds.width, bounds.height); //draw button
+  if (trials.get(trialNum) == i) {
+    // --- Pulsate Red ---
+    float pulse = sin(frameCount * 0.2) * 50 + 205;  // pulsates brightness between 155–255
+
+    // --- Wiggle Effect ---
+    pushMatrix();  // Save the current transformation state
+    translate(bounds.x + box_size / 2, bounds.y + box_size / 2); // Move origin to center of button
+    float wiggle = sin(frameCount * 0.3) * 0.1;  // wiggle angle (in radians)
+    rotate(wiggle);
+
+    // Draw the pulsating, wiggling button
+    fill(pulse, 0, 0); // red with pulsing brightness
+    stroke(255);
+    strokeWeight(strokeW + 2);
+    rectMode(CENTER);
+    rect(0, 0, box_size, box_size);
+    rectMode(CORNER); // reset to default
+    popMatrix(); // Restore transformation state
+  } else {
+    // Draw normal non-target button
+    strokeWeight(strokeW);
+    fill(200);
+    rect(bounds.x, bounds.y, box_size, box_size);
+  }
 }
 
 void mouseMoved()
 {
-   //can do stuff everytime the mouse is moved (i.e., not clicked)
-   //https://processing.org/reference/mouseMoved_.html
+    for (int i = 0; i < 16; i++)// for all button
+    {
+        //Check if the cursor is over a button
+        Rectangle bounds = getButtonLocation(i);
+        if ((mouseX > bounds.x && mouseX < bounds.x + bounds.width) && (mouseY > bounds.y && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
+        {
+              if (!hovering) {
+                 hoverSound.play();
+                 hovering = true;
+              }
+           cursor(HAND); //Change cursor to hand if over a button
+           return; //Exit the function early
+        }
+    }
+    hovering = false;
+
+    cursor(ARROW);
 }
 
 void mouseDragged()
@@ -163,6 +205,11 @@ void mouseDragged()
 
 void keyPressed() 
 {
+    if (key == ' ') {
+        if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
+            mousePressed();
+        }
+    }
   //can use the keyboard if you wish
   //https://processing.org/reference/keyTyped_.html
   //https://processing.org/reference/keyCode.html
