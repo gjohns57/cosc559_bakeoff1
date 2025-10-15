@@ -27,7 +27,7 @@ int trialBeginX;
 int trialBeginY;
 int trialStartTime;
 boolean hovering = false;
-int numRepeats = 1; //sets the number of times each button repeats in the test
+int numRepeats = 20; //sets the number of times each button repeats in the test
 
 void setup()
 {
