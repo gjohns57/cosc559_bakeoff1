@@ -21,8 +21,11 @@ int startTime = 0; // time starts when the first click is captured
 int finishTime = 0; //records the time of the final click
 int hits = 0; //number of successful clicks
 int misses = 0; //number of missed clicks
+int user = 0;
 Robot robot; //initialized in setup 
-
+int trialBeginX;
+int trialBeginY;
+int trialStartTime;
 boolean hovering = false;
 int numRepeats = 1; //sets the number of times each button repeats in the test
 
@@ -56,9 +59,12 @@ void setup()
       trials.add(i);
 
   Collections.shuffle(trials); // randomize the order of the buttons
-  System.out.println("trial order: " + trials);
+  //System.out.println("trial order: " + trials);
   
   surface.setLocation(0,0);// put window in top left corner of screen (doesn't always work)
+  trialBeginX = mouseX;
+  trialBeginY = mouseY;
+  trialStartTime = millis();
 }
 
 
@@ -102,24 +108,41 @@ void mousePressed() // test to see if hit was in target!
   {
     finishTime = millis();
     //write to terminal some output. Useful for debugging too.
-    println("we're done!");
   }
 
+  int hit;
   Rectangle bounds = getButtonLocation(trials.get(trialNum));
 
  //check to see if mouse cursor is inside button 
   if ((mouseX > bounds.x && mouseX < bounds.x + bounds.width) && (mouseY > bounds.y && mouseY < bounds.y + bounds.height)) // test to see if hit was within bounds
   {
-    System.out.println("HIT! " + trialNum + " " + (millis() - startTime)); // success
+    hit = 1;
     hitSound.play();
     hits++; 
   } 
   else
   {
-    System.out.println("MISSED! " + trialNum + " " + (millis() - startTime)); // fail
+    hit = 0;
     missSound.play();  
     misses++;
   }
+  
+  int curTime = millis();
+  if (trialNum >= 1) {
+    System.out.printf("%d,%d,%d,%d,%d,%d,%d,%.3f,%d\n",
+      trialNum,
+      user,
+      trialBeginX,
+      trialBeginY,
+      bounds.x + bounds.width / 2,
+      bounds.y + bounds.height / 2,
+      bounds.width,
+      (double)(curTime - trialStartTime) / 1000.0,
+      hit);
+  }
+  trialStartTime = curTime;
+  trialBeginX = mouseX;
+  trialBeginY = mouseY;
 
   trialNum++; //Increment trial number
 
